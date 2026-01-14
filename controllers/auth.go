@@ -45,11 +45,11 @@ const (
 // AuthController handles authentication-related operations.
 type AuthController struct {
 	users  UsersRepository
-	config *config.Config
+	config config.Config
 }
 
 // NewAuthController creates a new instance of AuthController.
-func NewAuthController(users UsersRepository, config *config.Config) *AuthController {
+func NewAuthController(users UsersRepository, config config.Config) *AuthController {
 	return &AuthController{users: users, config: config}
 }
 

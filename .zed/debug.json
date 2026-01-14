@@ -6,4 +6,11 @@
     "mode": "debug",
     "program": "./cmd/server",
   },
+  {
+    "label": "Run scraper",
+    "adapter": "Delve",
+    "request": "launch",
+    "mode": "debug",
+    "program": "./cmd/scraper",
+  },
 ]

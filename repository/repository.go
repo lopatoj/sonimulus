@@ -11,7 +11,7 @@ import (
 )
 
 // NewDB creates a new PostgreSQL database connection.
-func NewDB(config *config.Config) (db *sql.DB, err error) {
+func NewDB(config config.Config) (db *sql.DB, err error) {
 	db, err = sql.Open("postgres", config.DBUrl)
 	if err != nil {
 		slog.Error("failed to open database", "error", err)

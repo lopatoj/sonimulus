@@ -11,8 +11,8 @@ import (
 	"lopa.to/sonimulus/api"
 	"lopa.to/sonimulus/config"
 	"lopa.to/sonimulus/controllers"
+	"lopa.to/sonimulus/handlers"
 	"lopa.to/sonimulus/repository"
-	"lopa.to/sonimulus/server"
 )
 
 func main() {
@@ -37,11 +37,11 @@ func main() {
 	authController := controllers.NewAuthController(usersRepository, cfg)
 	usersController := controllers.NewUsersController(usersRepository)
 
-	controller := server.NewServer(authController, usersController, cfg)
-	handler := api.HandlerWithOptions(controller, api.StdHTTPServerOptions{
-		Middlewares: []api.MiddlewareFunc{controller.AuthMiddleware},
+	handler := handlers.NewHandler(authController, usersController, cfg)
+	apiHandler := api.HandlerWithOptions(handler, api.StdHTTPServerOptions{
+		Middlewares: []api.MiddlewareFunc{handler.AuthMiddleware},
 	})
-	server := http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: handler}
+	server := http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: apiHandler}
 
 	ctrlc := make(chan os.Signal, 1)
 	signal.Notify(ctrlc, os.Interrupt, syscall.SIGTERM)
