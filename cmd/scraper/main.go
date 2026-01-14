@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log/slog"
 
-	"lopa.to/sonimulus/config"
+	"lopa.to/sonimulus/env"
 	"lopa.to/sonimulus/repository"
 	"lopa.to/sonimulus/scraper"
 )
@@ -15,14 +15,14 @@ func main() {
 	flag.Parse()
 
 	// Load config struct from environment variables and program arguments
-	cfg, err := config.NewConfig()
+	e, err := env.NewEnv()
 	if err != nil {
 		slog.Error("failed to initialize config", "error", err)
 		return
 	}
 
-	scraper := scraper.NewScraper(*depth, cfg)
-	db, err := repository.NewDB(cfg)
+	scraper := scraper.NewScraper(*depth, e)
+	db, err := repository.NewDB(e)
 	if err != nil {
 		slog.Error("failed to initialize database connection", "error", err)
 		return

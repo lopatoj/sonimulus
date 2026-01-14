@@ -7,12 +7,12 @@ import (
 	"log/slog"
 
 	_ "github.com/lib/pq"
-	"lopa.to/sonimulus/config"
+	"lopa.to/sonimulus/env"
 )
 
 // NewDB creates a new PostgreSQL database connection.
-func NewDB(config config.Config) (db *sql.DB, err error) {
-	db, err = sql.Open("postgres", config.DBUrl)
+func NewDB(e env.Env) (db *sql.DB, err error) {
+	db, err = sql.Open("postgres", e.DB.URI)
 	if err != nil {
 		slog.Error("failed to open database", "error", err)
 		return nil, err

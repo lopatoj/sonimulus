@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/argon2"
-	"lopa.to/sonimulus/config"
+	"lopa.to/sonimulus/env"
 	"lopa.to/sonimulus/repository"
 )
 
@@ -44,13 +44,13 @@ const (
 
 // AuthController handles authentication-related operations.
 type AuthController struct {
-	users  UsersRepository
-	config config.Config
+	users UsersRepository
+	env   env.Env
 }
 
 // NewAuthController creates a new instance of AuthController.
-func NewAuthController(users UsersRepository, config config.Config) *AuthController {
-	return &AuthController{users: users, config: config}
+func NewAuthController(users UsersRepository, e env.Env) *AuthController {
+	return &AuthController{users: users, env: e}
 }
 
 func (ac *AuthController) Login(email, password string) (user *repository.User, token string, err error) {
@@ -133,7 +133,7 @@ func (ac *AuthController) ValidateToken(token string) (user *repository.User, er
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrInvalidToken
 		}
-		return []byte(ac.config.JWT.Secret), nil
+		return []byte(ac.env.JWT.Secret), nil
 	})
 
 	if err != nil {
@@ -159,11 +159,11 @@ func (ac *AuthController) ValidateToken(token string) (user *repository.User, er
 func (ac *AuthController) refreshToken(user *repository.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": user.Id,
-		"exp":    time.Now().Add(time.Duration(ac.config.JWT.Expiration) * time.Second).Unix(),
+		"exp":    time.Now().Add(time.Duration(ac.env.JWT.Expiration) * time.Second).Unix(),
 		"iat":    time.Now().Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(ac.config.JWT.Secret))
+	tokenString, err := token.SignedString([]byte(ac.env.JWT.Secret))
 	if err != nil {
 		slog.Error("failed to sign token", "error", err)
 		return "", err

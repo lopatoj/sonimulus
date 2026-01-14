@@ -1,20 +1,20 @@
 package handlers
 
 import (
-	"lopa.to/sonimulus/config"
 	"lopa.to/sonimulus/controllers"
+	"lopa.to/sonimulus/env"
 )
 
 type Handler struct {
-	auth   *controllers.AuthController
-	users  *controllers.UsersController
-	config config.Config
+	auth  *controllers.AuthController
+	users *controllers.UsersController
+	env   env.Env
 }
 
-func NewHandler(auth *controllers.AuthController, users *controllers.UsersController, config config.Config) *Handler {
+func NewHandler(auth *controllers.AuthController, users *controllers.UsersController, e env.Env) *Handler {
 	return &Handler{
-		auth:   auth,
-		users:  users,
-		config: config,
+		auth:  auth,
+		users: users,
+		env:   e,
 	}
 }

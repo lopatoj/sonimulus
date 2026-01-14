@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
-	"lopa.to/sonimulus/config"
+	"lopa.to/sonimulus/env"
 	"lopa.to/sonimulus/repository"
 )
 
@@ -41,11 +41,11 @@ type Result struct {
 
 type Scraper struct {
 	maxDepth int
-	config   config.Config
+	env      env.Env
 	browser  *rod.Browser
 }
 
-func NewScraper(maxDepth int, config config.Config) *Scraper {
+func NewScraper(maxDepth int, e env.Env) *Scraper {
 	u := launcher.New().
 		NoSandbox(true).
 		MustLaunch()
@@ -53,7 +53,7 @@ func NewScraper(maxDepth int, config config.Config) *Scraper {
 
 	return &Scraper{
 		maxDepth: maxDepth,
-		config:   config,
+		env:      e,
 		browser:  browser,
 	}
 }
@@ -135,7 +135,7 @@ func (s *Scraper) ScrapePerson(
 		trackCount int64
 	)
 
-	userUrl := s.config.SoundcloudUrl + handle
+	userUrl := s.env.Soundcloud.URL + handle
 	slog.Info("scraping user", "handle", handle)
 
 	userPage := s.browser.MustPage(userUrl)

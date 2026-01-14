@@ -28,7 +28,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	authResponse := api.AuthResponse{
 		AccessToken:  token,
-		ExpiresIn:    h.config.JWT.Expiration,
+		ExpiresIn:    h.env.JWT.Expiration,
 		RefreshToken: token,
 		TokenType:    "Bearer",
 		User: api.User{
@@ -67,7 +67,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	authResponse := api.AuthResponse{
 		AccessToken:  token,
-		ExpiresIn:    h.config.JWT.Expiration,
+		ExpiresIn:    h.env.JWT.Expiration,
 		RefreshToken: token,
 		TokenType:    "Bearer",
 		User: api.User{
