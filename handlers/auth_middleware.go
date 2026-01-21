@@ -2,41 +2,40 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"net/http"
-	"strings"
-
-	"lopa.to/sonimulus/api"
 )
 
-// AuthMiddleware is a middleware that validates JWT tokens and sets the user in the context.
 func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		protected := r.Context().Value(api.JwtAuthScopes) != nil
-
-		if !protected {
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		bearer := r.Header.Get("Authorization")
-		if bearer == "" {
-			http.Error(w, "missing authorization header", http.StatusUnauthorized)
-			return
-		}
-
-		token := strings.TrimPrefix(bearer, "Bearer ")
-		if token == "" {
-			http.Error(w, "invalid authorization header", http.StatusUnauthorized)
-			return
-		}
-
-		user, err := h.auth.ValidateToken(token)
+		sessionID, err := r.Cookie("SESSION_ID")
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			slog.Error("Failed to get session id cookie", "error", err)
+			h.redirectToLogin(w, r)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", user)
+		session, found, err := h.auth.GetSession(r.Context(), sessionID.Value)
+		if err != nil {
+			slog.Error("Failed to get session", "error", err)
+			h.redirectToLogin(w, r)
+			return
+		}
+
+		if !found {
+			slog.Error("Session not found")
+			h.redirectToLogin(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "access_token", session.Token.AccessToken)
+		ctx = context.WithValue(ctx, "user", session.User)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (h *Handler) redirectToLogin(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, fmt.Sprintf("%s:%d/login", h.env.Client.URL, h.env.Client.Port), http.StatusSeeOther)
 }

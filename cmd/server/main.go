@@ -8,11 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"lopa.to/sonimulus/api"
-	"lopa.to/sonimulus/controllers"
+	"lopa.to/sonimulus/api/v1"
 	"lopa.to/sonimulus/env"
 	"lopa.to/sonimulus/handlers"
-	"lopa.to/sonimulus/repository"
+	"lopa.to/sonimulus/internal/auth"
+	"lopa.to/sonimulus/internal/data"
+	"lopa.to/sonimulus/internal/repo"
 )
 
 func main() {
@@ -23,23 +24,41 @@ func main() {
 		return
 	}
 
-	// Initialize database connection
-	db, err := repository.NewDB(e)
+	// Initialize PostgreSQL connection
+	pgdb, err := data.NewPostgresDB(e.DB.PostgresURI)
 	if err != nil {
-		slog.Error("failed to initialize database: %v\n", "error", err)
+		slog.Error("failed to initialize database", "error", err)
 		return
 	}
 
-	// Initialize database repositories
-	usersRepository := repository.NewUsersRepository(db)
+	// Initialize Redis connection
+	rdb, err := data.NewRedisClient(e.DB.RedisURI)
+	if err != nil {
+		slog.Error("failed to initialize redis client", "error", err)
+		return
+	}
+
+	scc, err := data.NewSoundCloudClient(e.Soundcloud.APIURL)
+
+	// Initialize data repositories
+	stateRepo := repo.NewStateRepository(rdb)
+	sessionRepo := repo.NewSessionRepository(rdb)
+	soundCloudRepo := repo.NewSoundCloudRepository(scc, e)
+	usersRepo := repo.NewUsersRepository(pgdb)
 
 	// Initialize server
-	authController := controllers.NewAuthController(usersRepository, e)
-	usersController := controllers.NewUsersController(usersRepository)
+	authController := auth.NewAuthController(
+		e,
+		stateRepo,
+		sessionRepo,
+		soundCloudRepo,
+		usersRepo,
+	)
 
-	handler := handlers.NewHandler(authController, usersController, e)
-	apiHandler := api.HandlerWithOptions(handler, api.StdHTTPServerOptions{
-		Middlewares: []api.MiddlewareFunc{handler.AuthMiddleware},
+	baseHandler := handlers.NewHandler(authController, e)
+	apiHandler := api.HandlerWithOptions(baseHandler, api.StdHTTPServerOptions{
+		BaseURL:     e.Server.Route,
+		Middlewares: []api.MiddlewareFunc{handlers.CorsMiddleware},
 	})
 	server := http.Server{Addr: fmt.Sprintf(":%d", e.Server.Port), Handler: apiHandler}
 

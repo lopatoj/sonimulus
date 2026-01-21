@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://spec.openapis.org/oas/3.0/schema/2024-10-18
+openapi: 3.0.4
+info:
+  title: Sonimulus API
+  version: 0.1.0
+servers:
+  - url: https://localhost:3000/api/v1
+  - url: https://sonimulus.com/api/v1
+paths:
+  /auth:
+    get:
+      summary: Perfoms an account login request via SoundCloud OAuth 2.0.
+      operationId: authenticate
+      responses:
+        "302":
+          description: Redirects to SoundCloud login.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+    delete:
+      summary: Logs out the user.
+      operationId: logout
+      responses:
+        "302":
+          description: Redirects to the login page.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+  /auth/callback:
+    get:
+      summary: Handles the callback from SoundCloud OAuth 2.0
+      operationId: callback
+      responses:
+        "302":
+          description: Redirects to the home page.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+  /auth/validate:
+    get:
+      summary: Validates the user's session.
+      operationId: validate
+      responses:
+        "200":
+          description: Session is valid.
+        "401":
+          description: Session is invalid.
+components:
+  securitySchemes:
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: SESSION_ID

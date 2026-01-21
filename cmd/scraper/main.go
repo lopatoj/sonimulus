@@ -5,7 +5,8 @@ import (
 	"log/slog"
 
 	"lopa.to/sonimulus/env"
-	"lopa.to/sonimulus/repository"
+	"lopa.to/sonimulus/internal/data"
+	"lopa.to/sonimulus/internal/repo"
 	"lopa.to/sonimulus/scraper"
 )
 
@@ -22,12 +23,12 @@ func main() {
 	}
 
 	scraper := scraper.NewScraper(*depth, e)
-	db, err := repository.NewDB(e)
+	db, err := data.NewPostgresDB(e.DB.PostgresURI)
 	if err != nil {
 		slog.Error("failed to initialize database connection", "error", err)
 		return
 	}
-	repo := repository.NewPeopleRepository(db)
+	repo := repo.NewPeopleRepository(db)
 
 	user := *rootHandle
 

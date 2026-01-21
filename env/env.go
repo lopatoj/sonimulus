@@ -13,21 +13,27 @@ import (
 // Env holds the configuration settings for the application.
 type Env struct {
 	Server struct {
-		Port int    `env:"PORT" default:"8080"`
-		URL  string `env:"URL" default:"https://localhost"`
-	} `env:"SERVER_"`
+		Port          int    `env:"PUBLIC_API_PORT" default:"3000"`
+		URL           string `env:"PUBLIC_API_URL" default:"https://localhost"`
+		Route         string `env:"PUBLIC_API_ROUTE" default:"/api/v1"`
+		RedirectRoute string `env:"API_REDIRECT_ROUTE" default:"/auth/callback"`
+	}
+	Client struct {
+		URL  string `env:"URL" default:"http://localhost"`
+		Port int    `env:"PORT" default:"5173"`
+	} `env:"CLIENT_"`
 	Soundcloud struct {
-		URL          string `env:"URL"`
+		URL          string `env:"URL" default:"https://soundcloud.com"`
+		APIURL       string `env:"API_URL" default:"https://api.soundcloud.com"`
 		ClientID     string `env:"CLIENT_ID"`
 		ClientSecret string `env:"CLIENT_SECRET"`
+		AuthURL      string `env:"AUTH_URL"`
+		TokenURL     string `env:"TOKEN_URL"`
 	} `env:"SOUNDCLOUD_"`
 	DB struct {
-		URI string `env:"URI"`
-	} `env:"POSTGRES_"`
-	JWT struct {
-		Secret     string `env:"SECRET" default:"secret"`
-		Expiration int    `env:"EXPIRE" default:"3600"`
-	} `env:"JWT_"`
+		PostgresURI string `env:"POSTGRES_URI"`
+		RedisURI    string `env:"REDIS_URI"`
+	}
 }
 
 // NewEnv initializes a new Env instance, drawing from environment variables.
